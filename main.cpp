@@ -66,7 +66,7 @@ int BT(int i, int r, int k)
     if (poda_optimalidad && k + (n-i) <= K) return MININFTY;
 
     // Recursión.
-		int no_agrego = BT(i+1, w, k);
+		int no_agrego = BT(i+1, r, k);
     int agrego = BT(i+1, min(r - Pesos[i],Resistencias[i]), k+1);
 
 		return max(no_agrego, agrego);
@@ -88,7 +88,7 @@ int BT(int i, int r, int k) //version con podas primero
     }
 
     // Recursión.
-		int no_agrego = BT(i+1, w, k);
+		int no_agrego = BT(i+1, r, k);
     int agrego = BT(i+1, min(r - Pesos[i],Resistencias[i]), k+1);
 
 		return max(no_agrego, agrego);
@@ -110,7 +110,7 @@ int BT2(int i, int r, int k)
     if (poda_optimalidad && k + (n-i) <= K) return MININFTY;
 
     // Recursión.
-		int no_agrego = BT(i-1, w, k);
+		int no_agrego = BT(i-1, r, k);
 		PesoAcumulado = R - r
 		if(Resistencias[i] >= PesoAcumulado)   // otra poda factibilidad
 		{
@@ -123,14 +123,14 @@ int BT2(int i, int r, int k)
 
 vector<vector<int>> M; // Memoria de PD.
 const int UNDEFINED = -1;
-// PD(i, w): minimo cardinal de un subconjunto de {Si, ... , Sn} que sume W−w.
-int PD(int i, int w)
+// PD(i, r):
+int PD(int i, int r)
 {
-	if (w > W) return INFTY;
-	if (i == n && w != W) return INFTY;
-	if (i == n && w == W) return 0;
-	if (M[i][w] == UNDEFINED) M[i][w] = min(PD(i+1, w), 1+PD(i+1, w+S[i]));
-	return M[i][w];
+	if (r < 0) return INFTY;
+	//if (i == n or r == 0) return 0; poner el r == 0 seria una poda ?
+	if (i == n) return 0;
+	if (M[i][r] == UNDEFINED) M[i][r] = max(PD(i+1, r), 1 + PD(i+1, min(r - Pesos[i],Resistencias[i]) ));
+	return M[i][r];
 }
 
 int main(int argc, char** argv)
@@ -188,9 +188,9 @@ int main(int argc, char** argv)
 	else if (algoritmo == "DP")
 	{
 		// Precomputamos la solucion para los estados.
-		M = vector<vector<int>>(n+1, vector<int>(W+1, UNDEFINED));
+		M = vector<vector<int>>(n+1, vector<int>(R+1, UNDEFINED));
 		for (int i = 0; i < n+1; ++i)
-			for (int j = 0; j < W+1; ++j)
+			for (int j = 0; j < R+1; ++j)
 				PD(i, j);
 
 		// Obtenemos la solucion optima.
