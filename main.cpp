@@ -34,7 +34,7 @@ int FB(int i,int k)
 		agrego = FB(i+1,k+1);
 
 		SolucionParcial[i] = 0;
-		agrego = FB(i+1,k);
+		no_agrego = FB(i+1,k);
 
 		return max(agrego, no_agrego);
 }
@@ -51,47 +51,47 @@ int BT(int i, int r, int k)
     if (i == n)
     {
     	if (r >= 0) K = max(K, k);
-      if (i == n) return r >= 0 ? k : MININFTY;
+    	if (i == n) return r >= 0 ? k : MININFTY;
     }
 
     // Poda por factibilidad.
-		if(poda_factibilidad && r == 0)
-		{
-			K = max(K, k);
-			return k;
-		}
+	if(poda_factibilidad && r == 0)
+	{
+		K = max(K, k);
+		return k;
+	}
     if (poda_factibilidad && r < 0) return MININFTY;
 
     // Poda por optimalidad.
     if (poda_optimalidad && k + (n-i) <= K) return MININFTY;
 
     // Recursión.
-		int no_agrego = BT(i+1, r, k);
+	int no_agrego = BT(i+1, r, k);
     int agrego = BT(i+1, min(r - Pesos[i],Resistencias[i]), k+1);
 
-		return max(no_agrego, agrego);
+	return max(no_agrego, agrego);
 }
 
 int BT(int i, int r, int k) //version con podas primero
 {
-		// Poda por factibilidad.
-	  if (poda_factibilidad && r < 0) return MININFTY;
-	  // Poda por optimalidad.
-	  if (poda_optimalidad && k + (n-i) <= K) return MININFTY;
+	// Poda por factibilidad.
+	if (poda_factibilidad && r < 0) return MININFTY;
+	// Poda por optimalidad.
+	if (poda_optimalidad && k + (n-i) <= K) return MININFTY;
 
-		// Caso base y poda factibilidad r==0 suponiendo que no haya productos
-		//con peso = 0.
+	// Caso base y poda factibilidad r==0 suponiendo que no haya productos
+	//con peso = 0.
     if (i == n or r == 0)
     {
     	K = max(K, k);
-      return k;
+    	return k;
     }
 
     // Recursión.
-		int no_agrego = BT(i+1, r, k);
+	int no_agrego = BT(i+1, r, k);
     int agrego = BT(i+1, min(r - Pesos[i],Resistencias[i]), k+1);
 
-		return max(no_agrego, agrego);
+	return max(no_agrego, agrego);
 }
 
 int BT2(int i, int r, int k)
@@ -100,7 +100,7 @@ int BT2(int i, int r, int k)
     if (i == -1)
     {
     	if (r >= 0) K = max(K, k);
-      if (i == n) return r >= 0 ? k : MININFTY;
+        if (i == n) return r >= 0 ? k : MININFTY;
     }
 
     // Poda por factibilidad.
@@ -110,14 +110,14 @@ int BT2(int i, int r, int k)
     if (poda_optimalidad && k + (n-i) <= K) return MININFTY;
 
     // Recursión.
-		int no_agrego = BT(i-1, r, k);
-		PesoAcumulado = R - r
-		if(Resistencias[i] >= PesoAcumulado)   // otra poda factibilidad
-		{
-			int agrego = BT(i-1, r - Pesos[i], k+1);
-			return max(no_agrego, agrego);
-		}
-		return no_agrego
+	int no_agrego = BT(i-1, r, k);
+	PesoAcumulado = R - r
+	if(Resistencias[i] >= PesoAcumulado)   // otra poda factibilidad
+	{
+		int agrego = BT(i-1, r - Pesos[i], k+1);
+		return max(no_agrego, agrego);
+	}
+	return no_agrego
 }
 
 
