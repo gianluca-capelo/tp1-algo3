@@ -35,7 +35,7 @@ bool esValida(const vector<int> &solu) // podriamos no pasar parametros y usar s
         if (resistenciaActual < 0) return false;
         if (solu[i] == 1) resistenciaActual = min(resistenciaActual - Pesos[i], Resistencias[i]);
     }
-    return true;
+    return resistenciaActual >= 0 ;
 }
 
 // i: posicion del elemento a considerar en este nodo.
@@ -52,6 +52,7 @@ int FB(int i, int k) {
 
     SolucionParcial[i] = 0;
     int no_agrego = FB(i + 1, k);
+    
     return max(agrego, no_agrego);
 }
 
