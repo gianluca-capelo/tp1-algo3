@@ -19,15 +19,16 @@ vector<int> Resistencias;
 // i: posicion del elemento a considerar en este nodo.
 // r: maximo peso que se puede agregar sin aplastar ni otros productos ni el tubo.
 // k: cantidad de elementos seleccionados hasta este nodo.
-int FB(int i,int r, int k) {
+int FB(int i,int r, int k)
+{
     // Caso base.
     if (i == n) return r >= 0 ? k : MININFTY;
 
     // Recursión.
-    int no_agrego = FB(i + 1, r, k);
     int agrego = FB(i + 1, min(r - Pesos[i], Resistencias[i]), k + 1);
+    int no_agrego = FB(i + 1, r, k);
 
-    return max(no_agrego, agrego);
+    return max(agrego, no_agrego);
 }
 // i: posicion del elemento a considerar en este nodo.
 // r: maximo peso que se puede agregar sin aplastar otros productos ni el tubo.
@@ -42,6 +43,7 @@ int BT(int i, int r, int k) //version con podas primero
       if (r == 0) K = max(K, k);
       return r == 0 ? k : MININFTY;
     }
+
     // Poda por optimalidad.
     if (poda_optimalidad && k + (n - i) <= K) return MININFTY;
 
@@ -52,10 +54,10 @@ int BT(int i, int r, int k) //version con podas primero
     }
 
     // Recursión.
-    int no_agrego = BT(i + 1, r, k);
     int agrego = BT(i + 1, min(r - Pesos[i], Resistencias[i]), k + 1);
+    int no_agrego = BT(i + 1, r, k);
 
-    return max(no_agrego, agrego);
+    return max(agrego, no_agrego);
 }
 
 vector <vector<int>> M; // Memoria de PD.
