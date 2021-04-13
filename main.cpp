@@ -73,6 +73,7 @@ int PD(int i, int r) {
 }
 
 int main(int argc, char **argv) {
+
     // Leemos el parametro que indica el algoritmo a ejecutar.
     map <string, string> algoritmos_implementados = {
             {"FB", "Fuerza Bruta"},
@@ -90,7 +91,7 @@ int main(int argc, char **argv) {
             cerr << "\t- " << alg_desc.first << ": " << alg_desc.second << endl;
         return 0;
     }
-    string algoritmo = argv[1];  // cat sakjas | ./main FB
+    string algoritmo = argv[1]; 
 
     // Leemos el input.
     cin >> n >> R;
