@@ -146,8 +146,12 @@ int main(int argc, char **argv) {
         int optbt = BT(0, R, 0);
         M = vector < vector < int >> (n + 1, vector<int>(R + 1, UNDEFINED));
         int optpd = PD(0, R);
-        if (optfb == optbt && optbt == optpd) optimum = 0;
-        else optimum = 1;
+        if (optfb == optbt && optbt == optpd){
+          optimum = 0;
+        }
+        else {
+          optimum = 1;
+        }
 
     }
     auto end = chrono::steady_clock::now();
