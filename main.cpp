@@ -19,8 +19,7 @@ vector<int> Resistencias;
 // i: posicion del elemento a considerar en este nodo.
 // r: maximo peso que se puede agregar sin aplastar ni otros productos ni el tubo.
 // k: cantidad de elementos seleccionados hasta este nodo.
-int FB(int i,int r, int k)
-{
+int FB(int i, int r, int k) {
     // Caso base.
     if (i == n) return r >= 0 ? k : MININFTY;
 
@@ -30,6 +29,7 @@ int FB(int i,int r, int k)
 
     return max(agrego, no_agrego);
 }
+
 // i: posicion del elemento a considerar en este nodo.
 // r: maximo peso que se puede agregar sin aplastar otros productos ni el tubo.
 // k: cantidad de elementos seleccionados hasta este nodo.
@@ -40,8 +40,8 @@ int BT(int i, int r, int k) //version con podas primero
 {
     // Poda por factibilidad.
     if (poda_factibilidad && r <= 0) {
-      if (r == 0) K = max(K, k);
-      return r == 0 ? k : MININFTY;
+        if (r == 0) K = max(K, k);
+        return r == 0 ? k : MININFTY;
     }
 
     // Poda por optimalidad.
@@ -62,6 +62,7 @@ int BT(int i, int r, int k) //version con podas primero
 
 vector <vector<int>> M; // Memoria de PD.
 const int UNDEFINED = -1;
+
 // PD(i, r): maximo numero de elementos pertenecientes al conjunto
 //de Resistencias y Pesos de {i, ... ,n} que puedo agregar en
 //un jambotubo de resistencia r.
@@ -76,11 +77,13 @@ int main(int argc, char **argv) {
 
     // Leemos el parametro que indica el algoritmo a ejecutar.
     map <string, string> algoritmos_implementados = {
-            {"FB", "Fuerza Bruta"},
-            {"BT", "Backtracking con podas"},
+            {"FB",   "Fuerza Bruta"},
+            {"BT",   "Backtracking con podas"},
             {"BT-F", "Backtracking con poda por factibilidad"},
             {"BT-O", "Backtracking con poda por optimalidad"},
-            {"PD", "Programacion dinámica"}
+            {"PD",   "Programacion dinámica"},
+            {"T",    "Test de consistencia entre metodos"}
+
     };
 
     // Verificar que el algoritmo pedido exista.
@@ -91,14 +94,13 @@ int main(int argc, char **argv) {
             cerr << "\t- " << alg_desc.first << ": " << alg_desc.second << endl;
         return 0;
     }
-    string algoritmo = argv[1]; 
+    string algoritmo = argv[1];
 
     // Leemos el input.
     cin >> n >> R;
     Pesos.assign(n, 0);
     Resistencias.assign(n, 0);
-    for (int i = 0; i < n; ++i) cin >> Pesos[i];
-    for (int i = 0; i < n; ++i) cin >> Resistencias[i];
+    for (int i = 0; i < n; ++i) cin >> Pesos[i] >> Resistencias[i];
 
     // Ejecutamos el algoritmo y obtenemos su tiempo de ejecución.
     int optimum;
@@ -108,12 +110,12 @@ int main(int argc, char **argv) {
 
         //Prueba para ver que funcione la lectura de parametros
 
-        // cout << "n: " << n << " || " << "R: " << R << endl;
+        // cout << "n: " << n << " " << "R: " << R << endl;
         // for (size_t i = 0; i < n; i++) {
-        //   cout << Pesos[i] << " || " << Resistencias[i] << endl;
+        //   cout << Pesos[i] << " " << Resistencias[i] << endl;
         // }
 
-        optimum = FB(0,R, 0);
+        optimum = FB(0, R, 0);
     } else if (algoritmo == "BT") {
         K = MININFTY;
         poda_optimalidad = poda_factibilidad = true;
@@ -130,19 +132,34 @@ int main(int argc, char **argv) {
         optimum = BT(0, R, 0);
     } else if (algoritmo == "PD") {
         // Precomputamos la solucion para los estados.
-        M = vector<vector<int>>(n+1, vector<int>(R+1, UNDEFINED));
+        M = vector < vector < int >> (n + 1, vector<int>(R + 1, UNDEFINED));
         // for (int i = 0; i < n+1; ++i)
         // 	for (int j = 0; j < R+1; ++j)
         // 		PD(i, j);
 
         // Obtenemos la solucion optima.
         optimum = PD(0, R);
+    } else if (algoritmo == "T") {
+        int optfb = FB(0, R, 0);
+        K = MININFTY;
+        poda_optimalidad = poda_factibilidad = true;
+        int optbt = BT(0, R, 0);
+        M = vector < vector < int >> (n + 1, vector<int>(R + 1, UNDEFINED));
+        int optpd = PD(0, R);
+        if (optfb == optbt && optbt == optpd) optimum = 0;
+        else optimum = 1;
+
     }
     auto end = chrono::steady_clock::now();
     double total_time = chrono::duration<double, milli>(end - start).count();
 
     // Imprimimos el tiempo de ejecución por stderr.
-    clog << total_time << endl;
+    if (algoritmo == "T") {
+        clog << optimum << endl;
+    }
+    if (algoritmo != "T") {
+        clog << total_time << endl;
+    }
 
     // Imprimimos el resultado por stdout.
     cout << (optimum == MININFTY ? -1 : optimum) << endl;
