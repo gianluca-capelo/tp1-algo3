@@ -69,7 +69,10 @@ const int UNDEFINED = -1;
 int PD(int i, int r) {
     if (r < 0) return MININFTY;
     if (i == n) return 0;
-    if (M[i][r] == UNDEFINED) M[i][r] = max(PD(i + 1, r), 1 + PD(i + 1, min(r - Pesos[i], Resistencias[i])));
+    if (M[i][r] == UNDEFINED) {
+      int agrego = PD(i + 1, min(r - Pesos[i], Resistencias[i]));
+      int no_agrego = PD(i + 1, r);
+      M[i][r] = max( 1 + agrego , no_agrego);
     return M[i][r];
 }
 
