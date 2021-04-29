@@ -16,89 +16,77 @@ int n, R;
 vector<int> Pesos;
 vector<int> Resistencias;
 
-
-bool esValida(const vector<int> &solu) // podriamos no pasar parametros y usar solo que SolucionParcial es global
-{
-    int resistenciaActual = R;
-    for (size_t i = 0; i < n; i++) {
-        if (resistenciaActual < 0) return false;
-        if (solu[i] == 1) resistenciaActual = min(resistenciaActual - Pesos[i], Resistencias[i]);
-    }
-    return resistenciaActual >= 0 ;
-}
-
 // i: posicion del elemento a considerar en este nodo.
+// r: maximo peso que se puede agregar sin aplastar ni otros productos ni el tubo.
 // k: cantidad de elementos seleccionados hasta este nodo.
-vector<int> SolucionParcial; //S[j] va a ser igual a 1 si solo si j<=i
-// y el elemento S[j] forma parte de nuestra solucion parcial.
-int FBb(int i, int k) {
-    // Caso base.
-    if (i == n) return esValida(SolucionParcial) ? k : MININFTY;
-
-    // Recursión.
-    SolucionParcial[i] = 1;
-    int agrego = FB(i + 1, k + 1);
-
-    SolucionParcial[i] = 0;
-    int no_agrego = FB(i + 1, k);
-
-    return max(agrego, no_agrego);
-}
-int FB(int i,int r, int k) {
+int FB(int i, int r, int k) {
     // Caso base.
     if (i == n) return r >= 0 ? k : MININFTY;
 
     // Recursión.
-    int no_agrego = FB(i + 1, r, k);
     int agrego = FB(i + 1, min(r - Pesos[i], Resistencias[i]), k + 1);
+    int no_agrego = FB(i + 1, r, k);
 
-    return max(no_agrego, agrego);
+    return max(agrego, no_agrego);
 }
+
 // i: posicion del elemento a considerar en este nodo.
+// r: maximo peso que se puede agregar sin aplastar otros productos ni el tubo.
 // k: cantidad de elementos seleccionados hasta este nodo.
-// r: maxima peso que no aplasta el tubo ni ningun producto.
 bool poda_factibilidad = true; // define si la poda por factibilidad esta habilitada.
 bool poda_optimalidad = true; // define si la poda por optimalidad esta habilitada.
 int K = MININFTY; // Mejor solucion hasta el momento.
-int BT(int i, int r, int k) //version con podas primero
-{
+int BT(int i, int r, int k){
     // Poda por factibilidad.
-    if (poda_factibilidad && r < 0) return MININFTY;
+    if (poda_factibilidad && r <= 0) {
+        if (r == 0) K = max(K, k);
+        return r == 0 ? k : MININFTY;
+    }
+
     // Poda por optimalidad.
     if (poda_optimalidad && k + (n - i) <= K) return MININFTY;
 
-    // Caso base y poda factibilidad r==0 suponiendo que no haya productos
-    // con peso = 0.
-    if (i == n or r == 0) {
-        K = max(K, k);
-        return k;
+    // Caso base
+    if (i == n) {
+        if (r >= 0) K = max(K, k);
+        return r >= 0 ? k : MININFTY;
     }
 
     // Recursión.
-    int no_agrego = BT(i + 1, r, k);
     int agrego = BT(i + 1, min(r - Pesos[i], Resistencias[i]), k + 1);
+    int no_agrego = BT(i + 1, r, k);
 
-    return max(no_agrego, agrego);
+    return max(agrego, no_agrego);
 }
 
 vector <vector<int>> M; // Memoria de PD.
 const int UNDEFINED = -1;
+
+// PD(i, r): maximo numero de elementos pertenecientes al conjunto
+// de Resistencias y Pesos de {i, ... ,n} que puedo agregar en
+// un jambotubo de resistencia r.
 int PD(int i, int r) {
     if (r < 0) return MININFTY;
-    //if (i == n || r == 0 ) return 0;
     if (i == n) return 0;
-    if (M[i][r] == UNDEFINED) M[i][r] = max(PD(i + 1, r), 1 + PD(i + 1, min(r - Pesos[i], Resistencias[i])));
+    if (M[i][r] == UNDEFINED) {
+        int agrego = PD(i + 1, min(r - Pesos[i], Resistencias[i]));
+        int no_agrego = PD(i + 1, r);
+        M[i][r] = max(1 + agrego, no_agrego);
+    }
     return M[i][r];
 }
 
 int main(int argc, char **argv) {
+
     // Leemos el parametro que indica el algoritmo a ejecutar.
     map <string, string> algoritmos_implementados = {
-            {"FB", "Fuerza Bruta"},
-            {"BT", "Backtracking con podas"},
+            {"FB",   "Fuerza Bruta"},
+            {"BT",   "Backtracking con podas"},
             {"BT-F", "Backtracking con poda por factibilidad"},
             {"BT-O", "Backtracking con poda por optimalidad"},
-            {"DP", "Programacion dinámica"}
+            {"PD",   "Programacion dinámica"},
+            {"T",    "Test de consistencia entre metodos"}
+
     };
 
     // Verificar que el algoritmo pedido exista.
@@ -109,14 +97,13 @@ int main(int argc, char **argv) {
             cerr << "\t- " << alg_desc.first << ": " << alg_desc.second << endl;
         return 0;
     }
-    string algoritmo = argv[1];  // cat sakjas | ./main FB
+    string algoritmo = argv[1];
 
     // Leemos el input.
     cin >> n >> R;
     Pesos.assign(n, 0);
     Resistencias.assign(n, 0);
-    for (int i = 0; i < n; ++i) cin >> Pesos[i];
-    for (int i = 0; i < n; ++i) cin >> Resistencias[i];
+    for (int i = 0; i < n; ++i) cin >> Pesos[i] >> Resistencias[i];
 
     // Ejecutamos el algoritmo y obtenemos su tiempo de ejecución.
     int optimum;
@@ -124,15 +111,7 @@ int main(int argc, char **argv) {
     auto start = chrono::steady_clock::now();
     if (algoritmo == "FB") {
 
-        //Prueba para ver que funcione la lectura de parametros
-
-        // cout << "n: " << n << " || " << "R: " << R << endl;
-        // for (size_t i = 0; i < n; i++) {
-        //   cout << Pesos[i] << " || " << Resistencias[i] << endl;
-        // }
-
-        SolucionParcial.assign(n, 0);
-        optimum = FB(0, 0);
+        optimum = FB(0, R, 0);
     } else if (algoritmo == "BT") {
         K = MININFTY;
         poda_optimalidad = poda_factibilidad = true;
@@ -147,21 +126,39 @@ int main(int argc, char **argv) {
         poda_optimalidad = true;
         poda_factibilidad = false;
         optimum = BT(0, R, 0);
-    } else if (algoritmo == "DP") {
+    } else if (algoritmo == "PD") {
         // Precomputamos la solucion para los estados.
-        M = vector<vector<int>>(n+1, vector<int>(R+1, UNDEFINED));
+        M = vector < vector < int >> (n + 1, vector<int>(R + 1, UNDEFINED));
         // for (int i = 0; i < n+1; ++i)
         // 	for (int j = 0; j < R+1; ++j)
         // 		PD(i, j);
 
         // Obtenemos la solucion optima.
         optimum = PD(0, R);
+    } else if (algoritmo == "T") {
+        int optfb = FB(0, R, 0);
+        K = MININFTY;
+        poda_optimalidad = poda_factibilidad = true;
+        int optbt = BT(0, R, 0);
+        M = vector < vector < int >> (n + 1, vector<int>(R + 1, UNDEFINED));
+        int optpd = PD(0, R);
+        if (optfb == optbt && optbt == optpd) {
+            optimum = 0;
+        } else {
+            optimum = 1;
+        }
+
     }
     auto end = chrono::steady_clock::now();
     double total_time = chrono::duration<double, milli>(end - start).count();
 
     // Imprimimos el tiempo de ejecución por stderr.
-    clog << total_time << endl;
+    if (algoritmo == "T") {
+        clog << optimum << endl;
+    }
+    if (algoritmo != "T") {
+        clog << total_time << endl;
+    }
 
     // Imprimimos el resultado por stdout.
     cout << (optimum == MININFTY ? -1 : optimum) << endl;
