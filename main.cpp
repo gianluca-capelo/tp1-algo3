@@ -36,8 +36,7 @@ int FB(int i, int r, int k) {
 bool poda_factibilidad = true; // define si la poda por factibilidad esta habilitada.
 bool poda_optimalidad = true; // define si la poda por optimalidad esta habilitada.
 int K = MININFTY; // Mejor solucion hasta el momento.
-int BT(int i, int r, int k) //version con podas primero
-{
+int BT(int i, int r, int k){
     // Poda por factibilidad.
     if (poda_factibilidad && r <= 0) {
         if (r == 0) K = max(K, k);
@@ -62,10 +61,9 @@ int BT(int i, int r, int k) //version con podas primero
 
 vector <vector<int>> M; // Memoria de PD.
 const int UNDEFINED = -1;
-
 // PD(i, r): maximo numero de elementos pertenecientes al conjunto
-//de Resistencias y Pesos de {i, ... ,n} que puedo agregar en
-//un jambotubo de resistencia r.
+// de Resistencias y Pesos de {i, ... ,n} que puedo agregar en
+// un jambotubo de resistencia r.
 int PD(int i, int r) {
     if (r < 0) return MININFTY;
     if (i == n) return 0;
@@ -73,6 +71,7 @@ int PD(int i, int r) {
       int agrego = PD(i + 1, min(r - Pesos[i], Resistencias[i]));
       int no_agrego = PD(i + 1, r);
       M[i][r] = max( 1 + agrego , no_agrego);
+    }
     return M[i][r];
 }
 
@@ -85,8 +84,6 @@ int main(int argc, char **argv) {
             {"BT-F", "Backtracking con poda por factibilidad"},
             {"BT-O", "Backtracking con poda por optimalidad"},
             {"PD",   "Programacion dinámica"},
-            {"T",    "Test de consistencia entre metodos"}
-
     };
 
     // Verificar que el algoritmo pedido exista.
@@ -110,14 +107,6 @@ int main(int argc, char **argv) {
     optimum = MININFTY;
     auto start = chrono::steady_clock::now();
     if (algoritmo == "FB") {
-
-        //Prueba para ver que funcione la lectura de parametros
-
-        // cout << "n: " << n << " " << "R: " << R << endl;
-        // for (size_t i = 0; i < n; i++) {
-        //   cout << Pesos[i] << " " << Resistencias[i] << endl;
-        // }
-
         optimum = FB(0, R, 0);
     } else if (algoritmo == "BT") {
         K = MININFTY;
@@ -134,39 +123,14 @@ int main(int argc, char **argv) {
         poda_factibilidad = false;
         optimum = BT(0, R, 0);
     } else if (algoritmo == "PD") {
-        // Precomputamos la solucion para los estados.
         M = vector < vector < int >> (n + 1, vector<int>(R + 1, UNDEFINED));
-        // for (int i = 0; i < n+1; ++i)
-        // 	for (int j = 0; j < R+1; ++j)
-        // 		PD(i, j);
-
-        // Obtenemos la solucion optima.
         optimum = PD(0, R);
-    } else if (algoritmo == "T") {
-        int optfb = FB(0, R, 0);
-        K = MININFTY;
-        poda_optimalidad = poda_factibilidad = true;
-        int optbt = BT(0, R, 0);
-        M = vector < vector < int >> (n + 1, vector<int>(R + 1, UNDEFINED));
-        int optpd = PD(0, R);
-        if (optfb == optbt && optbt == optpd){
-          optimum = 0;
-        }
-        else {
-          optimum = 1;
-        }
-
     }
     auto end = chrono::steady_clock::now();
     double total_time = chrono::duration<double, milli>(end - start).count();
 
     // Imprimimos el tiempo de ejecución por stderr.
-    if (algoritmo == "T") {
-        clog << optimum << endl;
-    }
-    if (algoritmo != "T") {
-        clog << total_time << endl;
-    }
+    clog << total_time << endl;
 
     // Imprimimos el resultado por stdout.
     cout << (optimum == MININFTY ? -1 : optimum) << endl;
